@@ -3,6 +3,7 @@ from requests_html import HTML
 import pandas as pd
 import numpy as np
 import urllib
+import jieba
 
 def fetch(url):
 	response = requests.get(url) 
@@ -18,7 +19,8 @@ def get_infor(entry):
     'author': entry.find('div.author', first=True).text,
 	}
 
-page_num = 3 # total page number you want to crawl
+
+page_num = 1 # total page number you want to crawl
 
 url = 'https://www.ptt.cc/bbs/TaiwanDrama/index.html'
 
@@ -29,7 +31,13 @@ for i in range(page_num):
 	entries = html.find('div.r-ent')
 
 	for entry in entries: # get information of each post
-		print(get_infor(entry))
+		entry_dict = get_infor(entry)
+		if '(本文已被刪除)' in entry_dict['title']:
+			entry_dict['author'] = entry_dict['title'][len('(本文已被刪除)') + 2:-1] # 抓出原文作者
+		else:
+			seg_list = jieba.lcut(entry_dict['title'], cut_all=False)
+			#print(seg_list)
+		print(entry_dict)
 
 	controls = html.find('a.btn.wide')
 	link = controls[1].attrs['href']
