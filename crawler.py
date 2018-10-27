@@ -6,6 +6,7 @@ import urllib
 import jieba
 import os
 import sys
+import re
 
 def fetch(url):
 	response = requests.get(url) 
@@ -21,7 +22,13 @@ def get_infor(entry):
     'author': entry.find('div.author', first=True).text,
 	}
 
+def remove_punctuation(title_str):
+    rule = re.compile('[^a-zA-Z0-9\u4e00-\u9fa5]')
+    title_str = rule.sub('',title_str)
+    return title_str
+
 def count_voc(voc_set, seg_list):
+
 	for item in seg_list:
 		if item in voc_set:
 			voc_set[item] += 1
@@ -29,8 +36,15 @@ def count_voc(voc_set, seg_list):
 			voc_set[item] = 1
 	return voc_set
 
-page_num = 30 # total page number you want to crawl
+def write_file(sorted_by_value, page_num):
+	file_name = 'voc_count_p%d.txt'%page_num
+	with open (file_name, 'w', errors='ignore') as out_f: # ignore the character cannot be decoded when writing (it's ok if we only print out)
+		for v_tuple in sorted_by_value:
+			padding = ' ' * (15 - len(v_tuple[0]))
+			out_f.write("%s%s%d\n"%(v_tuple[0], padding, v_tuple[1]))
 
+
+page_num = 500 # total page number you want to crawl
 url = 'https://www.ptt.cc/bbs/TaiwanDrama/index.html'
 del_list = []
 voc_set = {}
@@ -42,7 +56,8 @@ for i in range(page_num):
 	html = HTML(html=resp.text)
 	entries = html.find('div.r-ent')
 
-	for entry in entries: # get information of each post
+	# get information of each post
+	for entry in entries: 
 		entry_dict = get_infor(entry)
 		if '(本文已被刪除)' in entry_dict['title']:
 			entry_dict['author'] = entry_dict['title'][len('(本文已被刪除)') + 2:-1] # find the author ID of a deleted article
@@ -50,10 +65,12 @@ for i in range(page_num):
 
 		else:
 			start_idx = entry_dict['title'].find(']') + 2 # skip the article class
-			# print(entry_dict['title'][start_idx: ])
-			seg_list = jieba.cut(entry_dict['title'][start_idx: ], cut_all=False)
+			title_str = entry_dict['title'][start_idx: ]
+			title_str = remove_punctuation(title_str) # remove the punctuation
+			seg_list = jieba.cut(title_str, cut_all=False)
 			count_voc(voc_set, seg_list)
 
+	# get the url of the previous page
 	controls = html.find('a.btn.wide')
 	link = controls[1].attrs['href']
 	pre_url = urllib.parse.urljoin('https://www.ptt.cc/', link)
@@ -61,9 +78,4 @@ for i in range(page_num):
 	i += 1
 
 sorted_by_value = sorted(voc_set.items(), key=lambda kv: kv[1], reverse=True) # return a list of tuple ('str', num)
-
-# output to a file in Users dic
-with open ('voc_count.txt', 'w', errors='ignore') as out_f: # ignore the character cannot be decoded when writing (it's ok if we only print out)
-	for v_tuple in sorted_by_value:
-		padding = ' ' * (10 - len(v_tuple[0]))
-		out_f.write("%s%s%d\n"%(v_tuple[0], padding, v_tuple[1]))
+write_file(sorted_by_value, page_num)
