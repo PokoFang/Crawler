@@ -27,9 +27,10 @@ def remove_punctuation(title_str):
     title_str = rule.sub('',title_str)
     return title_str
 
-def count_voc(voc_set, seg_list):
-
+def count_voc(voc_set, seg_list, w_file):
 	for item in seg_list:
+		w_file.write(item) # not count, output all voc
+		w_file.write(' ')
 		if item in voc_set:
 			voc_set[item] += 1
 		else:
@@ -43,13 +44,20 @@ def write_file(sorted_by_value, page_num):
 			padding = ' ' * (15 - len(v_tuple[0]))
 			out_f.write("%s%s%d\n"%(v_tuple[0], padding, v_tuple[1]))
 
+'''
+def write_csv(sorted_by_value, page_num):
+	file_name = 'voc_count_p%d.csv'%page_num
+	df = pd.DataFrame(sorted_by_value, columns=['voc', 'count'])
+	df.to_csv(file_name, index=False, encoding='cp950')
+'''
 
-page_num = 500 # total page number you want to crawl
+page_num = 1 # total page number you want to crawl
 url = 'https://www.ptt.cc/bbs/TaiwanDrama/index.html'
 del_list = []
 voc_set = {}
 print("程式預設編碼 : ",sys.getdefaultencoding(), ", cmd預設編碼 : ",sys.stdin.encoding)
 
+w_file = open('text.txt', 'w')
 for i in range(page_num):
 	print('page: ', i, ', remaining page number: ', page_num - i)
 	resp = fetch(url)
@@ -68,7 +76,7 @@ for i in range(page_num):
 			title_str = entry_dict['title'][start_idx: ]
 			title_str = remove_punctuation(title_str) # remove the punctuation
 			seg_list = jieba.cut(title_str, cut_all=False)
-			count_voc(voc_set, seg_list)
+			count_voc(voc_set, seg_list, w_file)
 
 	# get the url of the previous page
 	controls = html.find('a.btn.wide')
@@ -78,4 +86,4 @@ for i in range(page_num):
 	i += 1
 
 sorted_by_value = sorted(voc_set.items(), key=lambda kv: kv[1], reverse=True) # return a list of tuple ('str', num)
-write_file(sorted_by_value, page_num)
+#write_file(sorted_by_value, page_num)
