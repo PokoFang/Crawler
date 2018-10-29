@@ -32,10 +32,10 @@ def remove_punctuation(line):
 '''
 
 # test wordcloud
-f = open('C:/Users/poko/text.txt').read()
-wordcloud = WordCloud(background_color="white",width=1000, height=860, margin=2).generate(f)
+#f = open('C:/Users/poko/voc_count_p500.txt').read()
+f = open('text.txt').read()
+stopwords = {}.fromkeys(['孩子']) # remove the word we don't want 
+wordcloud = WordCloud(font_path="msjh.ttc", background_color="white",width=1000, height=860, margin=2, stopwords=stopwords).generate(f)
 plt.imshow(wordcloud)
 plt.axis("off")
 plt.show()
-
-#wordcloud.to_file('test.png')
