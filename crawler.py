@@ -44,8 +44,20 @@ def write_file(sorted_by_value, page_num, i):
 			padding = ' '# * (15 - len(v_tuple[0]))
 			out_f.write("%s%s%d\n"%(v_tuple[0], padding, v_tuple[1]))
 
+# jieba dictionay adjustment
+jieba.suggest_freq('八點檔', True)
+jieba.suggest_freq(('集', '台視'), True)
+jieba.suggest_freq(('你的孩子不是你的孩子'), True)
+jieba.suggest_freq(('一把青'), True)
+jieba.suggest_freq(('如朕親臨'), True)
+jieba.suggest_freq(('台', '八點'), True)
+jieba.suggest_freq(('請閉眼'), True)
+jieba.suggest_freq(('20之後'), True)
+jieba.suggest_freq(('必娶女人'), True)
+jieba.suggest_freq(('艋舺'), True)
+jieba.suggest_freq(('愛上哥們'), True)
 
-page_num = 500 # total page number you want to crawl
+page_num = 1500 # total page number you want to crawl
 url = 'https://www.ptt.cc/bbs/TaiwanDrama/index.html'
 del_list = []
 voc_set = {}
@@ -64,6 +76,8 @@ for i in range(1, page_num + 1):
 		if '(本文已被刪除)' in entry_dict['title']:
 			entry_dict['author'] = entry_dict['title'][len('(本文已被刪除)') + 2:-1] # find the author ID of a deleted article
 			del_list.append(entry_dict)
+			with open ('C:/Users/poko/Documents/GitHub/Crawler/del_infor_p%d.txt'%page_num, 'w') as d_f:
+				d_f.write(entry_dict['author'] + ' ' + entry_dict['date'] + '\n')
 
 		else:
 			start_idx = entry_dict['title'].find(']') + 2 # skip the article class
@@ -78,16 +92,19 @@ for i in range(1, page_num + 1):
 	pre_url = urllib.parse.urljoin('https://www.ptt.cc/', link)
 	url = pre_url
 
-	if i % 100 == 0: # output the result every 100 page
+	stopwords = ['的', '第', '集', '是', '嗎' ,'了', '之', '在', '篇']
+	for sw in stopwords:
+		voc_set.pop(sw, None)
+	
+	if i % 500 == 0: # output the result every 100 page
 		# create wordcloud
-		# stopwords = {}.fromkeys(['的']) useless if we use 'generate_from_frequencies'
 		wordcloud = WordCloud(font_path="msjh.ttc", background_color="white",width=1000, height=860, margin=2).generate_from_frequencies(frequencies=voc_set)
 		plt.imshow(wordcloud)
 		plt.axis("off")
 		wordcloud.to_file('C:/Users/poko/Documents/GitHub/Crawler/wc_p%d.png'%i)
-		#plt.show()
+		# plt.show()
 
 		sorted_by_value = sorted(voc_set.items(), key=lambda kv: kv[1], reverse=True) # return a list of tuple ('str', num)
 		write_file(sorted_by_value, page_num, i)
-
+	
 	i += 1
