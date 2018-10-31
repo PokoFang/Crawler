@@ -57,6 +57,8 @@ jieba.suggest_freq(('必娶女人'), True)
 jieba.suggest_freq(('艋舺'), True)
 jieba.suggest_freq(('愛上哥們'), True)
 
+stopwords = ['的', '第', '集', '是', '嗎' ,'了', '之', '在', '篇'] # set stopwords
+
 page_num = 1500 # total page number you want to crawl
 url = 'https://www.ptt.cc/bbs/TaiwanDrama/index.html'
 del_list = []
@@ -92,11 +94,10 @@ for i in range(1, page_num + 1):
 	pre_url = urllib.parse.urljoin('https://www.ptt.cc/', link)
 	url = pre_url
 
-	stopwords = ['的', '第', '集', '是', '嗎' ,'了', '之', '在', '篇']
-	for sw in stopwords:
-		voc_set.pop(sw, None)
 	
 	if i % 500 == 0: # output the result every 100 page
+		for sw in stopwords:
+			voc_set.pop(sw, None)
 		# create wordcloud
 		wordcloud = WordCloud(font_path="msjh.ttc", background_color="white",width=1000, height=860, margin=2).generate_from_frequencies(frequencies=voc_set)
 		plt.imshow(wordcloud)
