@@ -11,4 +11,5 @@ There are three kinds of output files:
 	1. del_infor_p1500.txt: record the author and date of a deleted article
 	2. voc_count_p1500.txt: record the word and its frequency
 	3. wc_p1500.png: visualize the word and its frequency by wordcloud
+	
 (_p1500 in these three cases means the output files are generated from 1500 web pages.)
