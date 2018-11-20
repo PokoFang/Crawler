@@ -13,3 +13,9 @@ There are three kinds of output files:
 	3. wc_p1500.png: visualize the word and its frequency by wordcloud
 	
 (_p1500 in these three cases means the output files are generated from 1500 web pages.)
+
+
+Following picture is the result from 1500 web pages:
+
+<img src="https://github.com/PokoFang/Crawler/blob/master/wc_p1500.png" width="400px" />
+
